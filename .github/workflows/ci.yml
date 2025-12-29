@@ -13,7 +13,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests
-        run: ./test.sh
+        run:|
+            ls
+            pwd
+            ./test.sh
 
       - name: Build Docker image
         run: docker build -t cicd-demo-app .
