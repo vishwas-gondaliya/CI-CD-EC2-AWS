@@ -42,6 +42,8 @@ jobs:
             docker stop cicd-demo || true
             docker rm cicd-demo || true
 
+            rm -rf CI-CD-EC2-AWS/
+
             git clone https://github.com/vishwas-gondaliya/CI-CD-EC2-AWS.git
             cd CI-CD-EC2-AWS
             echo "Building Docker image with tag $IMAGE_TAG"
@@ -67,7 +69,3 @@ jobs:
       # 3. Cleanup local key file
       - name: Cleanup SSH key
         run: rm -f key.pem
-
-      - name: delete project folder
-        run: rm -rf CI-CD-EC2-AWS/
-
