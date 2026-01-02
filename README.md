@@ -149,7 +149,13 @@ No secrets are committed to the repository.
 
 ---
 
-## Common Issues Encountered
+## Known Weaknesses & Failure Scenarios
+- EC2 restart wipes running containers
+- Deploy may fail after stopping the old container
+- No version tracking of deployed images
+- Rollback not automated
+- SSH-based deploy is powerful but risky if misused
+
 
 * Docker image not available on EC2
 * SSH permission issues
