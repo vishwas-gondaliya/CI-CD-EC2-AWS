@@ -1,41 +1,15 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "feature/**"]
+  pull_request:
 
 jobs:
   ci:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run tests
-        run: |
-            ls
-            pwd
-            ./test.sh
-
-      - name: Build Docker image
-        run: docker build -t cicd-demo-app .
-
-      - name: Deploy to EC2
-        if: github.ref == 'refs/heads/main'
-        run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
-          chmod 600 key.pem
-
-          ssh -o StrictHostKeyChecking=no \
-          -i key.pem \
-          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            git clone https://github.com/vishwas-gondaliya/CI-CD-EC2-AWS.git
-            cd CI-CD-EC2-AWS
-            docker stop cicd-demo || true
-            docker rm cicd-demo || true
-            docker build -t cicd-demo-app .
-            docker run -d --name cicd-demo -p 80:8080 cicd-demo-app
-          EOF
-
+      - uses: actions/checkout@v4
+      - run: ./test.sh
+      - run: docker build -t cicd-demo-app .
 
