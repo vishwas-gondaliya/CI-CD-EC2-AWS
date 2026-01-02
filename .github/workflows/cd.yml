@@ -68,3 +68,6 @@ jobs:
       - name: Cleanup SSH key
         run: rm -f key.pem
 
+      - name: delete project folder
+        run: rm -rf CI-CD-EC2-AWS/
+
