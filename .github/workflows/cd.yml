@@ -1,13 +1,24 @@
-name: CD
+- name: Deploy to EC2
+  run: |
+    IMAGE_TAG=${GITHUB_SHA::7}
 
-on:
-  push:
-    branches: ["main"]
+    echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+    chmod 600 key.pem
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "Deploying from main branch"
+    ssh -o StrictHostKeyChecking=no \
+      -i key.pem \
+      ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+        git clone https://github.com/vishwas-gondaliya/CI-CD-EC2-AWS.git
+        cd CI-CD-EC2-AWS
+        docker stop cicd-demo || true
+        docker rm cicd-demo || true
+
+        docker build -t cicd-demo-app:$IMAGE_TAG .
+        docker run -d \
+          --name cicd-demo \
+          -p 80:8080 \
+          cicd-demo-app:$IMAGE_TAG
+
+        echo "$IMAGE_TAG" > /home/ec2-user/LIVE_VERSION
+    EOF
 
