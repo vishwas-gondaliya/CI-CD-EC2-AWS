@@ -1,24 +1,68 @@
-- name: Deploy to EC2
-  run: |
-    IMAGE_TAG=${GITHUB_SHA::7}
+name: CD
 
-    echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
-    chmod 600 key.pem
+on:
+  push:
+    branches:
+      - main
 
-    ssh -o StrictHostKeyChecking=no \
-      -i key.pem \
-      ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
-        git clone https://github.com/vishwas-gondaliya/CI-CD-EC2-AWS.git
-        cd CI-CD-EC2-AWS
-        docker stop cicd-demo || true
-        docker rm cicd-demo || true
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
 
-        docker build -t cicd-demo-app:$IMAGE_TAG .
-        docker run -d \
-          --name cicd-demo \
-          -p 80:8080 \
-          cicd-demo-app:$IMAGE_TAG
+    steps:
+      # 1. Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        echo "$IMAGE_TAG" > /home/ec2-user/LIVE_VERSION
-    EOF
+      # 2. Deploy to EC2 via SSH (versioned + health-checked)
+      - name: Deploy application to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          set -e
+
+          IMAGE_TAG=${GITHUB_SHA::7}
+          echo "Deploying version: $IMAGE_TAG"
+
+          # Write SSH key
+          echo "$EC2_SSH_KEY" > key.pem
+          chmod 600 key.pem
+
+          # SSH into EC2 and deploy
+          ssh -o StrictHostKeyChecking=no \
+              -i key.pem \
+              $EC2_USER@$EC2_HOST << EOF
+
+            set -e
+
+            echo "Stopping existing container (if any)"
+            docker stop cicd-demo || true
+            docker rm cicd-demo || true
+
+            echo "Building Docker image with tag $IMAGE_TAG"
+            docker build -t cicd-demo-app:$IMAGE_TAG .
+
+            echo "Starting new container"
+            docker run -d \
+              --name cicd-demo \
+              -p 80:8080 \
+              cicd-demo-app:$IMAGE_TAG
+
+            echo "Waiting for app to start"
+            sleep 3
+
+            echo "Running health check"
+            curl -f http://localhost
+
+            echo "$IMAGE_TAG" > /home/ec2-user/LIVE_VERSION
+            echo "Deployment successful. Live version: $IMAGE_TAG"
+
+          EOF
+
+      # 3. Cleanup local key file
+      - name: Cleanup SSH key
+        run: rm -f key.pem
 
