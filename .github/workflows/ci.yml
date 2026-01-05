@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -6,10 +7,17 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  verify:
+    name: Verify code quality
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - run: ./test.sh
-      - run: docker build -t cicd-demo-app .
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: ./test.sh
+
+      - name: Build Docker image
+        run: docker build -t cicd-demo-app .
 
