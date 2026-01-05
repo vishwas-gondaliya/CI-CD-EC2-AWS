@@ -173,3 +173,10 @@ No secrets are committed to the repository.
    - Runs container on EC2
    - Performs health check
 4. Application becomes accessible via EC2 public IP
+
+## Design Decisions
+
+- Used EC2 instead of Kubernetes to focus on CI/CD fundamentals
+- Used SSH-based deployment for transparency and debuggability
+- Separated CI and CD to prevent accidental deployments
+- Chose versioned Docker images to enable rollback
