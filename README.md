@@ -160,3 +160,16 @@ No secrets are committed to the repository.
 - CI must pass before CD runs
 - CD runs only from main branch
 - Deployment must pass health check
+
+## System Overview
+
+1. Developer pushes code to GitHub
+2. CI workflow runs on GitHub-hosted runner
+   - Executes tests
+   - Builds Docker image
+3. CD workflow runs on push to main
+   - Connects to EC2 via SSH
+   - Builds versioned Docker image
+   - Runs container on EC2
+   - Performs health check
+4. Application becomes accessible via EC2 public IP
