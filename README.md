@@ -180,3 +180,10 @@ No secrets are committed to the repository.
 - Used SSH-based deployment for transparency and debuggability
 - Separated CI and CD to prevent accidental deployments
 - Chose versioned Docker images to enable rollback
+
+## What I Would Do Next
+
+- Use a container registry (ECR) instead of building on EC2
+- Automate rollback on failed health checks
+- Use infrastructure as code for EC2 provisioning
+- Introduce staging environment before production
